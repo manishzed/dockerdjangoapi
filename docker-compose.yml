@@ -1,0 +1,56 @@
+version: "3"
+services:
+  django:
+    container_name: django_server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docker_tutorial_django
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/var/www/myproject
+    ports:
+      - "8000:8000"
+    links:
+      - db
+    environment:
+      - DATABASE_URL=mysql://root:itsasecret@db:3306/docker_tutorial_django_db
+
+  db:
+    container_name: mysql_database
+    image: mysql/mysql-server
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=itsasecret
+    volumes:
+      - /Users/work/Development/data/mysql:/var/lib/mysql
+
+  selenium_hub:
+    container_name: selenium_hub
+    image: selenium/hub
+    ports:
+      - "4444:4444"
+
+  selenium_chrome:
+    container_name: selenium_chrome
+    image: selenium/node-chrome-debug
+    environment:
+      - HUB_PORT_4444_TCP_ADDR=selenium_hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    ports:
+      - "5900:5900"
+    depends_on:
+      - selenium_hub
+
+  selenium_firefox:
+    container_name: selenium_firefox
+    image: selenium/node-firefox-debug
+    environment:
+      - HUB_PORT_4444_TCP_ADDR=selenium_hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    ports:
+      - "5901:5900"
+    depends_on:
+      - selenium_hub
